@@ -296,14 +296,14 @@ void MainWindow::on_pushButton_3_clicked()          // нажата кнопка
     init(false);
 }
 
-QString MainWindow::find_chidls(Frame *frame)
+QString MainWindow::find_childs(Frame *frame)
 {
     QString temp;
     for(Frame *fr : frame->_childs)
     {
 
         temp.push_back(fr->_name + ", ");
-        temp.push_back(find(fr));
+        temp.push_back(find_childs(fr));
     }
 
     return temp;
@@ -320,7 +320,7 @@ void MainWindow::on_pushButton_4_clicked()          //кнопка поиска 
         {
             result.push_back(slot->_parent->_name + ", ");      // добавляем его в результат
             for(Frame *frame : slot->_parent->_childs)          // добавляем в результат всех его потомков
-                result.push_back(find_chidls(frame));           // и потомков потомков
+                result.push_back(find_childs(frame));           // и потомков потомков
         }
 
     }
