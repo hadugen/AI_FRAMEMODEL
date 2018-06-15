@@ -20,7 +20,7 @@ void MainWindow::slot_addFrameAccepted(QString parentName, QString value)
 {
     Frame *frame = new Frame(value, parentName);
     Frame *parent = findParent(parentName);
-    frame->m_parent = parent;
+    frame->_parent = parent;
     parent->addChild(frame);
     frameList.push_back(frame);
     init(true);
@@ -31,7 +31,7 @@ void MainWindow::slot_addSlotAccepted(QString parentName, QString slotName, QStr
     Slot *slot = new Slot(slotName, slotType, slotValue, parentName);
     Frame *parent = findParent(parentName);
     parent->addSlot(slot);
-    slot->m_parent = parent;
+    slot->_parent = parent;
     slotList.push_back(slot);
     init(true);
 }
@@ -80,15 +80,15 @@ void MainWindow::saveModel()
     QTextStream frameStream(frameFileDesc);
     QTextStream slotStream(slotsFileDesc);
 
-    for(int i = 0; i < frameList.size(); i++)
+    for(Frame *frame : frameList)
     {
-        frameStream << frameList.at(i)->m_name << ":" << frameList.at(i)->parentName << "\r\n";
+        frameStream << frame->_name << ":" << frame->_parentName << "\r\n";
     }
 
-    for(int i = 0; i < slotList.size(); i++)
+    for(Slot *slot : slotList)
     {
-        slotStream << slotList.at(i)->m_name << ":" << slotList.at(i)->m_type << ":" <<
-                      slotList.at(i)->m_value << ":" << slotList.at(i)->parentName << "\r\n";
+        slotStream << slot->_name << ":" <<slot->_type << ":" <<
+                      slot->_value << ":" << slot->_parentName << "\r\n";
     }
 
     frameFileDesc->close();
@@ -100,15 +100,13 @@ QTreeWidgetItem *MainWindow::initTree(Frame *frame)
     QTreeWidgetItem *item = new QTreeWidgetItem();
     if(!frame->added)
     {
-        item->setText(0, frame->m_name);
+        item->setText(0, frame->_name);
 
-        if(frame->m_childs.size() != 0)
-            for(int i = 0; i < frame->m_childs.size(); i++)
-                item->addChild(initTree(frame->m_childs.at(i)));
+        for(Frame *childFrame : frame->_childs)
+            item->addChild(initTree(childFrame));
 
-        if(frame->m_slots.size() != 0)
-            for(int i = 0; i < frame->m_slots.size(); i++)
-                item->addChild(initTree(frame->m_slots.at(i)));
+        for(Slot * childSlot : frame->_slots)
+            item->addChild(initTree(childSlot));
 
         frame->added = true;
         return item;
@@ -125,7 +123,7 @@ QTreeWidgetItem *MainWindow::initTree(Slot *slot)
     QTreeWidgetItem *item = new QTreeWidgetItem();
     if(!slot->added)
     {
-        item->setText(0, slot->m_name);
+        item->setText(0, slot->_name);
         item->setTextColor(0, color);
         slot->added = true;
         return item;
@@ -154,48 +152,49 @@ void MainWindow::init(bool reInit)
 
     QString parentName;
     Frame *parent;
-    for(int i = 0; i < frameList.size(); i++)
+    for(Frame *frame : frameList)
     {
-        parentName = frameList.at(i)->parentName;
+        parentName = frame->_parentName;
         parent = findParent(parentName);
         if(parent != nullptr)
         {
-            parent->addChild(frameList.at(i));
-            frameList.at(i)->m_parent = parent;
+            parent->addChild(frame);
+            frame->_parent = parent;
         }
     }
 
-    for(int i = 0; i < slotList.size(); i++)
+    for(Slot *slot : slotList)
     {
-        parentName = slotList.at(i)->parentName;
+        parentName = slot->_parentName;
         parent = findParent(parentName);
         if(parent != nullptr)
         {
-            parent->addSlot(slotList.at(i));
-            slotList.at(i)->m_parent = parent;
+            parent->addSlot(slot);
+            slot->_parent = parent;
         }
     }
 
-    for(int i = 0; i < frameList.size(); i++)
+    for(Frame *frame : frameList)
     {
-        ui->treeWidget->addTopLevelItem(initTree(frameList.at(i)));
+        ui->treeWidget->addTopLevelItem(initTree(frame));
     }
 }
 
 Slot *MainWindow::findSlot(QString name)
 {
-    for(int i = 0; i < slotList.size(); i++)
-        if(slotList.at(i)->m_name == name)
-            return  slotList.at(i);
+    for(Slot *slot : slotList)
+        if(slot->_name == name)
+            return  slot;
 
     return nullptr;
 }
 
 Frame *MainWindow::findParent(QString name)
 {
-    for(int i = 0; i < frameList.size(); i++)
-        if(frameList.at(i)->m_name == name)
-            return frameList.at(i);
+    for(Frame *frame : frameList)
+        if(frame->_name == name)
+            return frame;
+
     return nullptr;
 }
 
@@ -209,9 +208,9 @@ void MainWindow::on_pushButton_saveSlot_clicked()
     Slot *slot = findSlot(ui->treeWidget->currentItem()->text(0));
     if(slot != nullptr)
     {
-        slot->m_name = ui->lineEdit_slotName->text();
-        slot->m_value = ui->lineEdit_slotValue->text();
-        slot->m_type = ui->comboBox_slotType->currentText();
+        slot->_name = ui->lineEdit_slotName->text();
+        slot->_value = ui->lineEdit_slotValue->text();
+        slot->_type = ui->comboBox_slotType->currentText();
     }
     init(true);
 }
@@ -221,9 +220,9 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     Slot *slot = findSlot(item->text(0));
     if(slot != nullptr)
     {
-        ui->lineEdit_slotName->setText(slot->m_name);
-        ui->lineEdit_slotValue->setText(slot->m_value);
-        ui->comboBox_slotType->setCurrentText(slot->m_type);
+        ui->lineEdit_slotName->setText(slot->_name);
+        ui->lineEdit_slotValue->setText(slot->_value);
+        ui->comboBox_slotType->setCurrentText(slot->_type);
     }
 }
 
@@ -244,7 +243,7 @@ bool MainWindow::deleteFrame(QString name)
     int i = 0;
     for(Frame *frame : frameList)
     {
-        if(frame->m_name == name)
+        if(frame->_name == name)
         {
             frameList.removeAt(i);
 
@@ -260,10 +259,10 @@ bool MainWindow::deleteSlot(QString name)
     int i = 0;
     for(Slot *slot : slotList)
     {
-        if(slot->m_name == name)
+        if(slot->_name == name)
         {
             slotList.removeAt(i);
-            slot->m_parent->deleteSlot(name);
+            slot->_parent->deleteSlot(name);
             delete slot;
             return true;
         }
@@ -299,10 +298,10 @@ void MainWindow::on_pushButton_3_clicked()
 QString MainWindow::find(Frame *frame)
 {
     QString temp;
-    for(Frame *fr : frame->m_childs)
+    for(Frame *fr : frame->_childs)
     {
 
-        temp.push_back(fr->m_name + ", ");
+        temp.push_back(fr->_name + ", ");
         temp.push_back(find(fr));
     }
 
@@ -316,10 +315,10 @@ void MainWindow::on_pushButton_4_clicked()
     QString result;
     for(Slot *slot : slotList)
     {
-        if(slot->m_name == slotName && slot->m_value == value)
+        if(slot->_name == slotName && slot->_value == value)
         {
-            result.push_back(slot->m_parent->m_name + ", ");
-            for(Frame *frame : slot->m_parent->m_childs)
+            result.push_back(slot->_parent->_name + ", ");
+            for(Frame *frame : slot->_parent->_childs)
                 result.push_back(find(frame));
         }
 

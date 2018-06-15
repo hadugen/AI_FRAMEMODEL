@@ -9,10 +9,6 @@ class Frame : public QObject
 {
     Q_OBJECT
 
-private:
-
-
-
 public:
     explicit Frame(QString name, QString parentName, QObject *parent = nullptr);
     void addChild(Frame *child);
@@ -20,17 +16,20 @@ public:
     void addSlot(Slot *slot);
     void deleteSlot(QString name);
     void setM_Parent(Frame *myParent);
-    QString m_name, parentName;
-    QList <Frame*> m_childs;
-    QList <Slot*> m_slots;
-    Frame* m_parent;
-    QList <QChar> m_attr;
+    void setParent(Frame *myParent);
+    QString _name, _parentName;
+    QList <Frame*> _childs;
+    QList <Slot*> _slots;
+    Frame* _parent;
     bool added;
 
 
 signals:
 
 public slots:
+
+private:
+
 };
 
 #endif // FRAME_H

@@ -2,34 +2,34 @@
 
 Frame::Frame(QString name, QString parentName, QObject *parent) : QObject(parent)
 {
-    m_name = name;
-    this->parentName = parentName;
+    _name = name;
+    _parentName = parentName;
     added = false;
 }
 
-void Frame::setM_Parent(Frame *myParent)
+void Frame::setParent(Frame *myParent)
 {
-    m_parent = myParent;
+    _parent = myParent;
 }
 
 void Frame::addChild(Frame *child)
 {
-    m_childs.push_back(child);
+    _childs.push_back(child);
 }
 
 void Frame::addSlot(Slot *slot)
 {
-    m_slots.push_back(slot);
+    _slots.push_back(slot);
 }
 
 void Frame::deleteChild(QString name)
 {
     int i = 0;
-    for(Frame *frame : m_childs)
+    for(Frame *frame : _childs)
     {
-        if(frame->m_name == name)
+        if(frame->_name == name)
         {
-            m_childs.removeAt(i);
+            _childs.removeAt(i);
             return;
         }
         i++;
@@ -39,11 +39,11 @@ void Frame::deleteChild(QString name)
 void Frame::deleteSlot(QString name)
 {
     int i = 0;
-    for(Slot *slot : m_slots)
+    for(Slot *slot : _slots)
     {
-        if(slot->m_name == name)
+        if(slot->_name == name)
         {
-            m_slots.removeAt(i);
+            _slots.removeAt(i);
             qDebug() << "ok";
             return;
         }

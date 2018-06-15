@@ -19,7 +19,7 @@ void AddFrame::setParentFramesList(QList<Frame *> frameList)
     ui->comboBox_parentFrame->clear();
     for(Frame *frame : frameList)
     {
-        ui->comboBox_parentFrame->addItem(frame->m_name);
+        ui->comboBox_parentFrame->addItem(frame->_name);
     }
 }
 
