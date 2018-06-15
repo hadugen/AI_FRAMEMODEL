@@ -36,7 +36,7 @@ void MainWindow::slot_addSlotAccepted(QString parentName, QString slotName, QStr
     init(true);
 }
 
-void MainWindow::load()
+void MainWindow::load()             // функция загружает данные слотов и фреймов и записывает их в slotList и frameList соответственно
 {
     frameList.clear();
     slotList.clear();
@@ -73,7 +73,7 @@ void MainWindow::load()
     slotsFileDesc->close();
 }
 
-void MainWindow::saveModel()
+void MainWindow::saveModel()                // функция фиксирует изменение в фреймах и слотах (кнопка сохранить под деревом)
 {
     frameFileDesc->open(QIODevice::ReadWrite | QIODevice::Unbuffered | QIODevice::Truncate);
     slotsFileDesc->open(QIODevice::ReadWrite | QIODevice::Unbuffered | QIODevice::Truncate);
@@ -95,7 +95,7 @@ void MainWindow::saveModel()
     slotsFileDesc->close();
 }
 
-QTreeWidgetItem *MainWindow::initTree(Frame *frame)
+QTreeWidgetItem *MainWindow::initTree(Frame *frame)     // перегруженная рекурсивная функция инициализирующая дерево
 {
     QTreeWidgetItem *item = new QTreeWidgetItem();
     if(!frame->added)
@@ -108,7 +108,7 @@ QTreeWidgetItem *MainWindow::initTree(Frame *frame)
         for(Slot * childSlot : frame->_slots)
             item->addChild(initTree(childSlot));
 
-        frame->added = true;
+        frame->added = true; // пометка того, что мы прошли через этот узел
         return item;
     }
 
@@ -134,25 +134,26 @@ QTreeWidgetItem *MainWindow::initTree(Slot *slot)
 }
 
 
-void MainWindow::init(bool reInit)
+void MainWindow::init(bool reInit)          //функция собирает дерево с узлами в кучу и выводит.
 {
     ui->treeWidget->clear();
+
     if(reInit)
     {
         for(Frame *frame : frameList)
             frame->added = false;
-
+                                        // помечаем узлы как не посещённые
         for(Slot *slot : slotList)
             slot->added = false;
     }
     else
     {
-        load();
+        load();                         // загрузка из файла
     }
 
     QString parentName;
     Frame *parent;
-    for(Frame *frame : frameList)
+    for(Frame *frame : frameList)           //записываем всех потомков фрейма в него
     {
         parentName = frame->_parentName;
         parent = findParent(parentName);
@@ -163,7 +164,7 @@ void MainWindow::init(bool reInit)
         }
     }
 
-    for(Slot *slot : slotList)
+    for(Slot *slot : slotList)              //записываем все слоты фрейма в него
     {
         parentName = slot->_parentName;
         parent = findParent(parentName);
@@ -176,11 +177,11 @@ void MainWindow::init(bool reInit)
 
     for(Frame *frame : frameList)
     {
-        ui->treeWidget->addTopLevelItem(initTree(frame));
+        ui->treeWidget->addTopLevelItem(initTree(frame));   // выводим дерево
     }
 }
 
-Slot *MainWindow::findSlot(QString name)
+Slot *MainWindow::findSlot(QString name)    //ищем слот по имени
 {
     for(Slot *slot : slotList)
         if(slot->_name == name)
@@ -189,7 +190,7 @@ Slot *MainWindow::findSlot(QString name)
     return nullptr;
 }
 
-Frame *MainWindow::findParent(QString name)
+Frame *MainWindow::findParent(QString name) //ищем потомка по имени
 {
     for(Frame *frame : frameList)
         if(frame->_name == name)
@@ -203,7 +204,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_saveSlot_clicked()
+void MainWindow::on_pushButton_saveSlot_clicked()           //фиксируем и обновляем дерево
 {
     Slot *slot = findSlot(ui->treeWidget->currentItem()->text(0));
     if(slot != nullptr)
@@ -215,7 +216,7 @@ void MainWindow::on_pushButton_saveSlot_clicked()
     init(true);
 }
 
-void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
+void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)  //слот, который выводит значения слота (лол)
 {
     Slot *slot = findSlot(item->text(0));
     if(slot != nullptr)
@@ -226,19 +227,19 @@ void MainWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
     }
 }
 
-void MainWindow::on_action_addFrame_triggered()
+void MainWindow::on_action_addFrame_triggered()         //менюшка добавления фрейма нажата
 {
     addFrameForm->setParentFramesList(frameList);
     addFrameForm->show();
 }
 
-void MainWindow::on_action_addSlot_triggered()
+void MainWindow::on_action_addSlot_triggered()         //менюшка добавления ckjnf нажата
 {
     addSlotForm->setParentFramesList(frameList);
     addSlotForm->show();
 }
 
-bool MainWindow::deleteFrame(QString name)
+bool MainWindow::deleteFrame(QString name)              // удалаем фрейм по имени
 {
     int i = 0;
     for(Frame *frame : frameList)
@@ -254,7 +255,7 @@ bool MainWindow::deleteFrame(QString name)
     return false;
 }
 
-bool MainWindow::deleteSlot(QString name)
+bool MainWindow::deleteSlot(QString name)           // удалаем слот по имени
 {
     int i = 0;
     for(Slot *slot : slotList)
@@ -271,7 +272,7 @@ bool MainWindow::deleteSlot(QString name)
     return false;
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_pushButton_clicked()                            // нажата кнопка удаления слота/фрейма
 {
     QTreeWidgetItem *item = ui->treeWidget->currentItem();
     if(deleteFrame(item->text(0)) || deleteSlot(item->text(0)))
@@ -284,18 +285,18 @@ void MainWindow::on_pushButton_clicked()
     }
 }
 
-void MainWindow::on_pushButton_2_clicked()
+void MainWindow::on_pushButton_2_clicked()          //нажата кнопка сохранения
 {
     saveModel();
 }
 
-void MainWindow::on_pushButton_3_clicked()
+void MainWindow::on_pushButton_3_clicked()          // нажата кнопка обновления
 {
     load();
     init(false);
 }
 
-QString MainWindow::find(Frame *frame)
+QString MainWindow::find_chidls(Frame *frame)
 {
     QString temp;
     for(Frame *fr : frame->_childs)
@@ -308,18 +309,18 @@ QString MainWindow::find(Frame *frame)
     return temp;
 }
 
-void MainWindow::on_pushButton_4_clicked()
+void MainWindow::on_pushButton_4_clicked()          //кнопка поиска нажата
 {
     QString slotName = ui->lineEdit->text();
     QString value = ui->lineEdit_2->text();
     QString result;
     for(Slot *slot : slotList)
     {
-        if(slot->_name == slotName && slot->_value == value)
+        if(slot->_name == slotName && slot->_value == value)    //если найден нужный слот и нужное значение
         {
-            result.push_back(slot->_parent->_name + ", ");
-            for(Frame *frame : slot->_parent->_childs)
-                result.push_back(find(frame));
+            result.push_back(slot->_parent->_name + ", ");      // добавляем его в результат
+            for(Frame *frame : slot->_parent->_childs)          // добавляем в результат всех его потомков
+                result.push_back(find_chidls(frame));           // и потомков потомков
         }
 
     }

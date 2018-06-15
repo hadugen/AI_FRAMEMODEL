@@ -34,7 +34,7 @@ public:
     Frame *findParent(QString name);
     bool deleteFrame(QString name);
     bool deleteSlot(QString name);
-    QString find(Frame *frame);
+    QString find_chidls(Frame *frame);
 
     void saveModel();
 
